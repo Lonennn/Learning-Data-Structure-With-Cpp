@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "*.tcc": "cpp",
+        "list": "cpp",
+        "queue": "cpp",
+        "algorithm": "cpp",
+        "functional": "cpp",
+        "forward_list": "cpp"
+    }
+}
