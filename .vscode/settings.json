@@ -5,6 +5,7 @@
         "queue": "cpp",
         "algorithm": "cpp",
         "functional": "cpp",
-        "forward_list": "cpp"
+        "forward_list": "cpp",
+        "initializer_list": "cpp"
     }
 }

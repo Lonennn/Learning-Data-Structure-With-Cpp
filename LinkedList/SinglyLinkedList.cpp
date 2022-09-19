@@ -1,4 +1,6 @@
 #include "SinglyLinkedList.hpp"
+// #include <crtdefs.h>
+#include <bits/move.h>>
 
 namespace LearningDataStruct
 {
@@ -148,19 +150,60 @@ inline Type& SinglyLinkedList<Type>::getFront() const
 }
 
 template<typename Type>
-Type& SinglyLinkedList<Type>::back() const
+inline Type& SinglyLinkedList<Type>::back() const
 {
     return rear->data;
 }
 
 template<typename Type>
-Type& SinglyLinkedList<Type>::getBack() const
+inline Type& SinglyLinkedList<Type>::getBack() const
 {
     return back();
 }
 
+template<typename Type>
+inline long long SinglyLinkedList<Type>::getSize() const
+{
+    return this->elementAmount;
+}
 
+template<typename Type>
+inline long long SinglyLinkedList<Type>::size() const
+{
+    return this->elementAmount;
+}
 
+template<typename Type>
+inline bool SinglyLinkedList<Type>::empty() const
+{
+    return 0 == this->elementAmount;
+}
+
+template<typename Type>
+inline bool SinglyLinkedList<Type>::isEmpty() const
+{
+    return empty();
+}
+
+template<typename Type, typename... Args>
+SinglyLinkedList<Type>::Iterator SinglyLinkedList<Type>::emplace(const Iterator &position, Args&&... args)
+{
+    return this->insert(position, std::forward<Args>(args));
+    // Node *emplaced = new Node(std::forward<Args>(args), position->next);
+    // Node *next = position->next;
+}
+
+template<typename Type, typename... Args>
+Type& SinglyLinkedList<Type>::emplaceBack(Args&&... args)
+{
+    return *(this->insert(this->rear, std::forward<Args>(args)));
+}
+
+template<typename Type, typename... Args>
+Type& SinglyLinkedList<Type>::emplaceFront(Args&&... args)
+{
+    return *(this->insert(this->first, std::forward<Args>(args)));
+}
 
 
 

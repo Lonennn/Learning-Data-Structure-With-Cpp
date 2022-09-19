@@ -60,23 +60,23 @@ public:
     Type& getFront() const;
     Type& back() const;
     Type& getBack() const;
-    int getSize() const;
-    int size() const;
+    long long getSize() const;
+    long long size() const;
     bool empty() const;
     bool isEmpty() const;
 
     /**
      * @brief  Constructs object in %list before specified iterator.
-     *  @param position  A const_iterator into the %list.
-     *  @param args  Arguments.
-     *  @return  An iterator that points to the inserted data.
+     * @param position  A const_iterator into the %list.
+     * @param args  Arguments.
+     * @return  An iterator that points to the inserted data.
      */
     template<typename... Args>
-    Iterator emplace(const Iterator &position, Args &&args);
+    Iterator emplace(const Iterator &position, Args&&... args);
     template<typename... Args>
-    Iterator emplaceBack(Args &&args);
+    Type& emplaceBack(Args&&... args);
     template<typename... Args>
-    Iterator emplaceFront(Args &&args);
+    Iterator emplaceFront(Args&&... args);
 
     void pushBack(const Type &data);
     void pushFront(const Type &data);
@@ -97,6 +97,7 @@ public:
     /**
      * @param position, the begin position of inserting.
      * @brief Insert an element or a series of element behind the position.
+     * @return An iterator points to the newly inserted position.
      */
     Iterator insert(const Iterator &position, std::initializer_list<Type> &il);
     Iterator insert(const Iterator &position, const Type &data);
@@ -152,7 +153,7 @@ public:
 private:
     Node *first;
     Iterator rear;  // Node *rear;
-    size_t elementAmount;
+    long long elementAmount;
 };      // end of class SinglyLinkedList
 
 }       // end of namespace
