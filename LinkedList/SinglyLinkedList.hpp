@@ -354,6 +354,12 @@ inline bool SinglyLinkedList<Type>::isEmpty() const
 //     return this->insert(position, std::forward<Args>(args));
 //     // Node *emplaced = new Node(std::forward<Args>(args), position->next);
 //     // Node *next = position->next;
+// }
+
+template<class Class, typename... Args>
+SinglyLinkedList<Class>::Iterator SinglyLinkedList<Class>::emplace(const SinglyLinkedList<Class>::Iterator &positoin, Args&&... args)
+{
+    
 }
 
 template<typename Type, typename... Args>
@@ -367,7 +373,6 @@ Type& SinglyLinkedList<Type>::emplaceFront(Args&&... args)
 {
     return *(this->insert(this->first, std::forward<Args>(args)));
 }
-
 
 }       // end of namespace
 
