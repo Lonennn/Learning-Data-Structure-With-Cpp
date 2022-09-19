@@ -6,6 +6,10 @@
         "algorithm": "cpp",
         "functional": "cpp",
         "forward_list": "cpp",
-        "initializer_list": "cpp"
+        "initializer_list": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp"
     }
 }
