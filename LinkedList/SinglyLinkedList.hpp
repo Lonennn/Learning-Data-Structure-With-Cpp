@@ -25,36 +25,57 @@ private:
         Node(const Type &_data, const Node *_next);
         Node(Type &&_data, const Node *_next);
     };      // end of struct Node
-public:
-    class Iterator
+private:
+    class BasicIterator
     {
-        private:
-            Iterator();
-            Iterator(Node *_prev);
-            Iterator(const Iterator &it);
-        public:
-            Type& operator*();
-            const Type& operator*() const;
-            
-            Iterator& operator++();
-            const Iterator operator++(int);
+    private:
+        BasicIterator();
+        BasicIterator(const Node *_prev);
+        BasicIterator(const BasicIterator &it);
+    public:
+        const Type& operator*() const;
+        const Type* operator->() const;
 
-            bool operator==(const Iterator &iterator) const;
-            bool operator!=(const Iterator &iterator) const;
+        BasicIterator& operator++();
+        const BasicIterator operator++(int);
 
-            Iterator& assign(const Iterator &iterator);
-            Iterator& operator=(const Iterator &iterator);
-        
-            Node* operator->() const;
-        private:
-            Node *prev;
-            // Node *curr;
-    };      // end of Iterator
+        bool operator==(const BasicIterator &iterator) const;
+        bool operator!=(const BasicIterator &iterator) const;
 
-    // class ConstIterator
-    // {
-    //     Node *prev, *curr;
-    // };
+        BasicIterator& assign(const BasicIterator &iterator);
+    private:
+        Node *prev;
+    };
+public:
+    class Iterator : public BasicIterator
+    {
+    private:
+        Iterator();
+        Iterator(const Node *_prev);
+        Iterator(const Iterator &it);
+        Iterator(const ConstIterator &it);
+    public:
+        Type& operator*();
+        Type* operator->();
+
+        // Iterator& operator=(const BasicIterator &iterator);
+        Iterator& operator=(const Iterator &iterator);
+        Iterator& operator=(const ConstIterator &iterator);
+    // private:
+        // Node *prev;
+    };      // end of class Iterator
+
+    class ConstIterator : public BasicIterator
+    {
+    private:
+        ConstIterator();
+        ConstIterator(const Node *_prev);
+        ConstIterator(const Iterator &it);
+        ConstIterator(const ConstIterator &it);
+    public:
+        ConstIterator& operator=(const Iterator &iterator);
+        ConstIterator& operator=(const ConstIterator &iterator);
+    };      // end of class ConstIterator
 
 public:
     SinglyLinkedList();
@@ -78,12 +99,25 @@ public:
      * @return  An iterator that points to the inserted data.
      */
     template<typename... Args>
-    Iterator emplace(const Iterator &position, Args&&... args);
+    Iterator emplace(const Iterator &position, Args&&... args)
+    {
+        return this->insert(position, std::forward<Args>(args)...);
+    }
     template<typename... Args>
-    Type& emplaceBack(Args&&... args);
+    Type& emplaceBack(Args&&... args)
+    {
+        this->insert(rear, std::forward<Args>(args)...);
+        return back();
+    }
     template<typename... Args>
-    Iterator emplaceFront(Args&&... args);
+    Iterator emplaceFront(Args&&... args)
+    {
+        this->insert(first, std::forward<Args>(args)...);
+    }
 
+    /**
+     * @brief push an element into the SinglyLinkedList object.
+     */
     void pushBack(const Type &data);
     void pushFront(const Type &data);
     void operator<<(const Type &data);
@@ -101,15 +135,27 @@ public:
     void popFront();
 
     /**
-     * @param position, the begin position of inserting.
      * @brief Insert an element or a series of element behind the position.
+     * @param position, the begin position of inserting.
      * @return An iterator points to the newly inserted position.
      */
-    Iterator insert(const Iterator &position, std::initializer_list<Type> &il);
+    Iterator insert(const Iterator &position, std::initializer_list<Type> &ilist);
     Iterator insert(const Iterator &position, const Type &data);
     Iterator insert(const Iterator &position, Type &&data);
     Iterator insert(const Iterator &position, size_t n, const Type &data);
     Iterator insert(const Iterator &position, Iterator inputFirst, Iterator inputLast);
+private:
+    Node* insert(const Node* &node, Type &&data);
+
+public:
+    Iterator begin();
+    ConstIterator begin() const;
+    Iterator getBegin();
+    ConstIterator getBegin() const;
+    Iterator end();
+    ConstIterator end() const;
+    Iterator getEnd();
+    ConstIterator getEnd() const;
 
     void remove(const Type &value, RemoveMode=RemoveMode.FIRST);
     enum RemoveMode{FIRST, LAST, ALL};
@@ -135,6 +181,9 @@ public:
     void splice(const Iterator &position, Iterator first);
     void splice(const Iterator &position, Iterator first, const Iterator &last);
 
+    /**
+     * @brief Reverse the SinglyLinkedList.
+     */
     void reverse();
 
     /**
@@ -142,8 +191,11 @@ public:
      */
     void unique();
 
+    /**
+     * @brief Sort the SinglyLinkedList object ascendingly or decendingly.
+     */
     void sort(SortMode mode = SortMode.ASCEND);
-    enum SortMode{ASCEND, DECEND};
+    enum SortMode{ASCEND, DECEND};      // 也许可以用merge那种形式。
 
 
     void clear();
@@ -152,9 +204,6 @@ public:
     SinglyLinkedList& operator=(const SinglyLinkedList &otherList);
     SinglyLinkedList& assign(SinglyLinkedList &&otherList);
     SinglyLinkedList& operator=(SinglyLinkedList &&otherList);
-
-    Iterator begin();
-    Iterator end();
 
 private:
     Node *first;
@@ -189,7 +238,7 @@ SinglyLinkedList<Type>::Iterator::Iterator()
 : prev(first) { }
 
 template<typename Type>
-SinglyLinkedList<Type>::Iterator::Iterator(Node *_prev)
+SinglyLinkedList<Type>::Iterator::Iterator(const Node *_prev)
 : prev(_prev) { }
 
 template<typename Type>
@@ -356,23 +405,23 @@ inline bool SinglyLinkedList<Type>::isEmpty() const
 //     // Node *next = position->next;
 // }
 
-template<class Class, typename... Args>
-SinglyLinkedList<Class>::Iterator SinglyLinkedList<Class>::emplace(const SinglyLinkedList<Class>::Iterator &positoin, Args&&... args)
-{
+// template<class Class, typename... Args>
+// SinglyLinkedList<Class>::Iterator SinglyLinkedList<Class>::emplace(const SinglyLinkedList<Class>::Iterator &positoin, Args&&... args)
+// {
     
-}
+// }
 
-template<typename Type, typename... Args>
-inline Type& SinglyLinkedList<Type>::emplaceBack(Args&&... args)
-{
-    return *(this->insert(this->rear, std::forward<Args>(args)));
-}
+// template<typename Type, typename... Args>
+// inline Type& SinglyLinkedList<Type>::emplaceBack(Args&&... args)
+// {
+//     return *(this->insert(this->rear, std::forward<Args>(args)...));
+// }
 
-template<typename Type, typename... Args>
-Type& SinglyLinkedList<Type>::emplaceFront(Args&&... args)
-{
-    return *(this->insert(this->first, std::forward<Args>(args)));
-}
+// template<typename Type, typename... Args>
+// Type& SinglyLinkedList<Type>::emplaceFront(Args&&... args)
+// {
+//     return *(this->insert(this->first, std::forward<Args>(args)...));
+// }
 
 }       // end of namespace
 
