@@ -40,7 +40,7 @@ private:
         const BasicIterator operator++(int);
 
         bool operator==(const BasicIterator &iterator) const;
-        bool operator!=(const BasicIterator &iterator) const;
+        bool operator!=(const BasicIterator &iterator) const;   
 
         BasicIterator& assign(const BasicIterator &iterator);
     private:
