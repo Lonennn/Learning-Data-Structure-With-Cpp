@@ -19,105 +19,155 @@ private:
         Type data;
         Node *next;
 
-        Node();
-        Node(const Type &_data);
-        Node(Type &&_data);
-        Node(const Type &_data, const Node *_next);
-        Node(Type &&_data, const Node *_next);
+        Node() : next(nullptr) { }
+        Node(const Type &_data) : data(_data), next(nullptr) { }
+        Node(Type &&_data) : data(_data), next(nullptr) { }
+        Node(const Type &_data, const Node *_next) : data(_data), next(_next) { }
+        Node(Type &&_data, const Node *_next) : data(_data), next(_next) { }
     };      // end of struct Node
-private:
-    class BasicIterator
+public:
+    class ConstIterator
     {
-    public:     // 私有类的共有构造
-        BasicIterator();
-        BasicIterator(const Node *_prev);
-        BasicIterator(const BasicIterator &it);
+    private:     // 私有类的共有构造
+        ConstIterator() : prev(first) { }
+        ConstIterator(const Node *_prev) : prev(_prev) { }
+        ConstIterator(const ConstIterator &it) : prev(it.prev) { }: prev(it.prev) { }
     public:
-        const Type& operator*() const;
-        // const Node* operator->() const;  // 不是pair类型，不需要->运算符
+        const Type& operator*() const
+        {
+            return prev->next->data;
+        }
+        const Type* operator->() const
+        {
+            return &(prev->next->data);
+        }
 
-        BasicIterator& operator++();
-        const BasicIterator operator++(int);
+        ConstIterator& operator++()       
+        {
+            this->prev = this->prev->next;
+            return *this;
+        }
+        const ConstIterator operator++(int)
+        {
+            decltype(*this) old = BasicIterator(*this);
+            ++*this;
+            return old;
+        }
 
-        bool operator==(const BasicIterator &iterator) const;
-        bool operator!=(const BasicIterator &iterator) const;
+        bool operator==(const ConstIterator &iterator) const
+        {
+            return this->prev->next == iterator.prev->next;
+        }
+        bool operator!=(const ConstIterator &iterator) const
+        {
+            return !(*this != iterator);
+        }
 
-        BasicIterator& assign(const BasicIterator &iterator);
+        ConstIterator& assign(const ConstIterator &iterator)
+        {
+            this->prev = iterator->prev;
+            return *this;
+        }
+        ConstIterator& operator=(const ConstIterator &iterator) {
+            return this->assign(iterator);
+        }
+
     protected:
         Node *prev;
     };
 public:
-    class ConstIterator
-    {       // 这里有争议，是要搞 ConstIterator，还是要搞 mute
-    private:
-        ConstIterator();
-        ConstIterator(const Node *_prev);
-        ConstIterator(const BasicIterator &it);
-    public:
-        // const Type& operator*() const;
-        // const Node* operator->() const;
-        ConstIterator& operator=(const BasicIterator &iterator);
-        static ConstIterator begin();
-        static ConstIterator end();
-    };
     class Iterator : public ConstIterator
     {
     private:
-        Iterator();
-        Iterator(const Node *_prev);
-        Iterator(const BasicIterator &it);
+        Iterator() : prev(first) { }
+        Iterator(const Node *_prev) : prev(_prev) { }
+        Iterator(const ConstIterator &it) : prev(it.prev) { }
+        // Iterator(const Iterator &it) : prev(it.prev) { }
     public:
-        Type& operator*();
-        // Node* operator->();
-        Iterator* operator=(const BasicIterator &iterator);
-        static Iterator begin();
-        static Iterator end();
+        Type& operator*() 
+        {
+            return prev->next->data;
+        }
+        Type* operator->()
+        {
+            return &(prev->next->data);
+        }
+
+        Iterator& assign(const Iterator &iterator)
+        {
+            this->prev = iterator->prev;
+            return *this;
+        }
+        Iterator& operator=(const Iterator &iterator)
+        {
+            return this->assign(iterator);
+        }
+        Iterator& operator=(const ConstIterator &iterator)
+        {
+            this->prev = iterator.prev;
+            return *this;
+        }
+
+        Iterator next()
+        {
+            return Iterator(this->prev->next);
+        }
+
+        Iterator insert(const Type &data)
+        {
+            insert(this->prev->next, data);
+            if (this->prev->next == rear)
+                rear = rear->next;
+            return Iterator(this->prev->next);
+        }
+        Iterator insert(Type &&data)
+        {
+            insert(this->prev->next, data);
+            if (this->prev->next == rear)
+                rear = rear->next;
+            return Iterator(this->prev->next);
+        }
     };
-/*
-    class Iterator : public BasicIterator
-    {
-    private:
-        Iterator();
-        Iterator(const Node *_prev);
-        Iterator(const Iterator &it);
-        Iterator(const ConstIterator &it);
-    public:
-        Type& operator*();
-        Type* operator->();
-
-        // Iterator& operator=(const BasicIterator &iterator);
-        Iterator& operator=(const Iterator &iterator);
-        Iterator& operator=(const ConstIterator &iterator);
-    // private:
-        // Node *prev;
-    };      // end of class Iterator
-
-    class ConstIterator : public BasicIterator
-    {
-    private:
-        ConstIterator();
-        ConstIterator(const Node *_prev);
-        ConstIterator(const Iterator &it);
-        ConstIterator(const ConstIterator &it);
-    public:
-        ConstIterator& operator=(const Iterator &iterator);
-        ConstIterator& operator=(const ConstIterator &iterator);
-    };      // end of class ConstIterator
-*/
+    
 public:
-    SinglyLinkedList();
+    SinglyLinkedList() : first(new Node()), rear(first), elementAmount(0) { }
     SinglyLinkedList(const SinglyLinkedList &otherList);
-    SinglyLinkedList(SinglyLinkedList &&otherList);
-    ~SinglyLinkedList();
+    // : first(new Node()), elementAmount(otherList.elementAmount)
+    // {
+    //     Node *i = first;
+    //     Node *j = otherList.first->next;
+    //     while (j != nullptr)
+    //     {
+    //         i->next = new Node(j->data);
+    //         i = i->next;
+    //         j = j->next;
+    //     }
+    //     rear = new Iterator();
+    // }
+    SinglyLinkedList(SinglyLinkedList &&otherList) = default;
+    ~SinglyLinkedList()
+    {
+        this->clear();
+        delete first;
+    }
 
-    Type& front() const;
-    Type& getFront() const;
-    Type& back() const;
-    Type& getBack() const;
-    size_t getSize() const;
-    size_t size() const;
-    bool empty() const;
-    bool isEmpty() const;
+
+    Type& front() const
+    {return first->next->data;}
+    Type& getFront() const
+    {return this->front();}
+    Type& back() const
+    {return *rear;}
+    Type& getBack() const
+    {return this->back();}
+    size_t size() const
+    {return this->elementAmount;}
+    size_t getSize() const
+    {return this->back();}
+    bool empty() const
+    {return (0 == this->elementAmount);}
+    bool isEmpty() const
+    {return this->empty();}
 
     /**
      * @brief  Constructs object in %list before specified iterator.
@@ -145,44 +195,116 @@ public:
     /**
      * @brief push an element into the SinglyLinkedList object.
      */
-    void pushBack(const Type &data);
-    void pushFront(const Type &data);
-    void operator<<(const Type &data);
-    friend void operator>>(const Type &data, SinglyLinkedList<Type> &sll);
+    void pushBack(const Type &data)
+    {
+        this->insert(this->rear, data);
+    }
+    void pushFront(const Type &data)
+    {
+        this->insert(this->first, data);
+    }
+    SinglyLinkedList& operator<<(const Type &data)
+    {
+        this->pushBack(data);
+        return *this;
+    }
+    friend void operator>>(const Type &data, SinglyLinkedList<Type> &sll)
+    {this->pushFront(data);}
 
-    void pushBack(Type &&data);
-    void pushFront(Type &&data);
-    void operator<<(Type &&data);
-    friend void operator>>(Type &&data, SinglyLinkedList<Type> &sll);
+    void pushBack(Type &&data)
+    {
+        this->insert(this->rear, data);
+    }
+    void pushFront(Type &&data)
+    {this->insert(this->first, data);}
+    SinglyLinkedList& operator<<(Type &&data)
+    {
+        this->pushBack(data);
+        return *this;
+    }
+    friend void operator>>(Type &&data, SinglyLinkedList<Type> &sll)
+    {this->pushFront(data);}
 
-    void popBack();
-    void popFront();
+    void popBack()
+    {
+        Node *it = first;
+        while (it->next != rear)
+        {it = it->next;}
+        delete rear;
+        while 
+        
+    }
+    void popFront()
+    {
+        Node *newFront = first->next->next;
+        delete first->next;
+        first->next = newFront;
+    }
 
     /**
      * @brief Insert an element or a series of element behind the position.
      * @param position, the begin position of inserting.
-     * @return An iterator points to the newly inserted position.
+     * @return An iterator points to the head of the newly inserted position.
      */
-    Iterator insert(const Iterator &position, std::initializer_list<Type> &ilist);
-    Iterator insert(const Iterator &position, const Type &data);
-    Iterator insert(const Iterator &position, Type &&data);
-    Iterator insert(const Iterator &position, size_t n, const Type &data);
-    Iterator insert(const Iterator &position, Iterator inputFirst, Iterator inputLast);
+    // Iterator insert(const Iterator &position, std::initializer_list<Type> &ilist)
+    // {
+    //     this->insert(Iterator)
+    //     return ++Iterator(position);
+    // }
+    Iterator insert(const Iterator &position, const Type &data)
+    {return position.insert(data);}
+    Iterator insert(const Iterator &position, Type &&data)
+    {return position.insert(data);}
+    Iterator insert(const Iterator &position, size_t n, const Type &data)
+    {
+        while (n--)
+            position.insert(data);
+        return position.next();
+    }
+    Iterator insert(const Iterator &position, Iterator inputBegin, Iterator inputEnd)
+    {
+        Iterator it(position);
+        while (inputBegin != inputEnd)
+        {
+            it = it.insert(*inputBegin);
+            ++inputBegin;
+        }
+        return position.next();
+    }
 private:
-    Node* insert(const Node* &node, Type &&data);
+    Node* insert(Node* node, const Type &data)
+    {
+        Node *newNode = new Node(data, node->next);
+        if (node == rear) rear = rear->next;
+        return (node->next = newNode);
+    }
+    Node* insert(Node* node, Type &&data)
+    {
+        Node *newNode = new Node(data, node->next);
+        if (node == rear) rear = rear->next;
+        return (node->next = newNode);
+    }
 
 public:
-    Iterator begin();
-    ConstIterator begin() const;
-    Iterator getBegin();
-    ConstIterator getBegin() const;
-    Iterator end();
+    Iterator begin()
+    {return Iterator(first);}
+    ConstIterator begin() const
+    {return ConstIterator(first);}
+    Iterator getBegin()
+    {return begin();}
+    ConstIterator getBegin() const
+    {return begin();}
+    Iterator end()
+    {return Iterator(rear);}
     ConstIterator end() const;
     Iterator getEnd();
     ConstIterator getEnd() const;
 
-    void remove(const Type &value, RemoveMode=RemoveMode.FIRST);
     enum RemoveMode{FIRST, LAST, ALL};
+    void remove(const Type &value, RemoveMode=RemoveMode.FIRST);
+    int removeFirst(const Type &value);
+    int removeLast(const Type &value);
+    int removeAll(const Type &value);
 
     Iterator find(const Type &value, FindMode mode=FindMode.FIRST) const;
     enum FindMode {FIRST, LAST};
@@ -220,6 +342,9 @@ public:
      */
     void sort(SortMode mode = SortMode.ASCEND);
     enum SortMode{ASCEND, DECEND};      // 也许可以用merge那种形式。
+    void defineSort(boolean *(cmp)(const Type &obj0, const Type &obj1));
+
+    void rotate(int k);
 
 
     void clear();
@@ -231,242 +356,13 @@ public:
 
 private:
     Node *first;
-    Iterator rear;  // Node *rear;
+    // Iterator rear;
+    Node *rear;
     size_t elementAmount;
 };      // end of class SinglyLinkedList
 
-template<typename Type>
-SinglyLinkedList<Type>::Node::Node()
-: next(nullptr) { }
-
-template<typename Type>
-SinglyLinkedList<Type>::Node::Node(const Type &_data)
-: data(_data), next(nullptr) { }
-
-template<typename Type>
-SinglyLinkedList<Type>::Node::Node(Type &&_data)
-: data(_data), next(nullptr) { }
-
-template<typename Type>
-SinglyLinkedList<Type>::Node::Node(const Type &_data, const Node *_next)
-: data(_data), next(_next) { }
-
-template<typename Type>
-SinglyLinkedList<Type>::Node::Node(Type &&_data, const Node *_next)
-: data(_data), next(_next) { }
 
 
-template<typename Type>
-SinglyLinkedList<Type>::BasicIterator::BasicIterator()
-: prev(first) { }
-
-template<typename Type>
-SinglyLinkedList<Type>::BasicIterator::BasicIterator(const Node *_prev)
-: prev(_prev) { }
-
-template<typename Type>
-SinglyLinkedList<Type>::BasicIterator::BasicIterator(const BasicIterator &it)
-: prev(it.prev) { }
-
-template<typename Type>
-inline const Type& SinglyLinkedList<Type>::BasicIterator::operator*() const
-{
-    return prev->next->data;
-}
-
-template<typename Type>
-inline SinglyLinkedList<Type>::BasicIterator& SinglyLinkedList<Type>::BasicIterator::operator++()
-{
-    prev = prev->next;
-    return *this;
-}
-
-template<typename Type>
-const SinglyLinkedList<Type>::BasicIterator SinglyLinkedList<Type>::BasicIterator::operator++(int)
-{
-    decltype(*this) old = BasicIterator(*this);
-    ++*this;
-    return old;
-}
-
-template<typename Type>
-inline bool SinglyLinkedList<Type>::BasicIterator::operator==(const BasicIterator &iterator) const 
-{
-    return this->prev->next == iterator.prev->next;
-}
-
-template<typename Type>
-inline bool SinglyLinkedList<Type>::BasicIterator::operator!=(const BasicIterator &iterator) const 
-{
-    return !(*this != iterator);
-}
-
-template<typename Type>
-SinglyLinkedList<Type>::BasicIterator& SinglyLinkedList<Type>::BasicIterator::assign(const BasicIterator &iterator)
-{
-    this->next = iterator->next;
-    return *this;
-}
-
-
-
-template<typename Type>
-SinglyLinkedList<Type>::Iterator::Iterator()
-: prev(first) { }
-
-template<typename Type>
-SinglyLinkedList<Type>::Iterator::Iterator(const Node *_prev)
-: prev(_prev) { }
-
-// template<typename Type>
-// SinglyLinkedList<Type>::Iterator::Iterator(const Iterator &it)
-// : prev(it.prev) { }
-
-template<typename Type>
-inline Type& SinglyLinkedList<Type>::Iterator::operator*()
-{
-    return prev->next->data;
-}
-
-// template<typename Type>
-// inline const Type& SinglyLinkedList<Type>::Iterator::operator*() const
-// {
-//     return prev->next->data;
-// }
-
-// template<typename Type>
-// inline SinglyLinkedList<Type>::Iterator& SinglyLinkedList<Type>::Iterator::operator++()
-// {
-//     prev = prev->next;
-//     return *this;
-// }
-
-// template<typename Type>
-// inline const SinglyLinkedList<Type>::Iterator SinglyLinkedList<Type>::Iterator::operator++(int)
-// {
-//     decltype(*this) old(*this);
-//     ++(*this);
-//     return old;
-// }
-
-// template<typename Type>
-// inline bool SinglyLinkedList<Type>::Iterator::operator==(const Iterator &iterator) const
-// {
-//     return prev == iterator.prev;
-// }
-
-// template<typename Type>
-// inline bool SinglyLinkedList<Type>::Iterator::operator!=(const Iterator &iteraotr) const
-// {
-//     return prev != iteraotr.prev;
-// }
-
-// template<typename Type>
-// inline SinglyLinkedList<Type>::Iterator& SinglyLinkedList<Type>::Iterator::assign(const Iterator &iterator)
-// {
-//     prev = iterator.prev;
-//     return *this;
-// }
-
-// template<typename Type>
-// inline SinglyLinkedList<Type>::Iterator& SinglyLinkedList<Type>::Iterator::operator=(const Iterator &iterator)
-// {
-//     return this->assign(iterator);
-// }
-
-// template<typename Type>
-// inline SinglyLinkedList<Type>::Node* SinglyLinkedList<Type>::Iterator::operator->() const
-// {
-//     return prev->next;
-// }
-
-template<typename Type>
-SinglyLinkedList<Type>::SinglyLinkedList()
-: first(new Node()), rear(Iterator()), elementAmount(0) { }
-
-template<typename Type>
-SinglyLinkedList<Type>::SinglyLinkedList(const SinglyLinkedList &otherList)
-: first(new Node()), elementAmount(otherList.elementAmount)
-{
-    Node *i = first;
-    Node *j = otherList.first->next;
-    while (j != nullptr)
-    {
-        i->next = new Node(j->data);
-        i = i->next;
-        j = j->next;
-    }
-    rear = new Iterator();
-}
-
-template<typename Type>
-SinglyLinkedList<Type>::SinglyLinkedList(SinglyLinkedList &&otherList)
-: first(otherList.first), rear(otherList.rear), elementAmount(otherList.elementAmount)
-{
-    otherList.first = new Node();
-    otherList.rear = Iterator();
-    otherList.elementAmount = 0;
-}
-
-template<typename Type>
-SinglyLinkedList<Type>::~SinglyLinkedList()
-{
-    decltype(first) temp;
-    while (first != nullptr)
-    {
-        temp = first;
-        first = first->next;
-        delete temp;
-    }
-}
-
-template<typename Type>
-inline Type& SinglyLinkedList<Type>::front() const
-{
-    return first->next->data;
-}
-
-template<typename Type>
-inline Type& SinglyLinkedList<Type>::getFront() const
-{
-    return front();
-}
-
-template<typename Type>
-inline Type& SinglyLinkedList<Type>::back() const
-{
-    return rear->data;
-}
-
-template<typename Type>
-inline Type& SinglyLinkedList<Type>::getBack() const
-{
-    return back();
-}
-
-template<typename Type>
-inline size_t SinglyLinkedList<Type>::getSize() const
-{
-    return this->elementAmount;
-}
-
-template<typename Type>
-inline size_t SinglyLinkedList<Type>::size() const
-{
-    return this->elementAmount;
-}
-
-template<typename Type>
-inline bool SinglyLinkedList<Type>::empty() const
-{
-    return 0 == this->elementAmount;
-}
-
-template<typename Type>
-inline bool SinglyLinkedList<Type>::isEmpty() const
-{
-    return empty();
-}
 
 // template<typename... Args>
 // SinglyLinkedList<Args[0]>::Iterator emplace(const Iterator &position, Args&&... args+1)
